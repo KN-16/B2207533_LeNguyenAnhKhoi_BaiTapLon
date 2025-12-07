@@ -1,0 +1,10 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.main-content {
+    /* Add padding to body to account for fixed-top navbar */
+    padding-top: 70px;
+    min-height: calc(100vh - 120px);
+    /* Full height minus header/footer */
+}

@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: library_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - library-network
+
+  backend:
+    build: ./backend
+    container_name: library_backend
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGO_URI=mongodb://mongodb:27017/library-mevn
+      - JWT_SECRET=docker_jwt_secret_key_123
+      - JWT_EXPIRES_IN=15m
+      - REFRESH_TOKEN_SECRET=docker_refresh_secret_key_456
+      - REFRESH_TOKEN_EXPIRES_IN=7d
+      # Origins for CORS (Frontend ports mapped to host)
+      - CLIENT_ORIGIN_USER=http://localhost:8080
+      - CLIENT_ORIGIN_ADMIN=http://localhost:8081
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend/public/uploads:/app/public/uploads
+    networks:
+      - library-network
+
+  frontend-user:
+    build: ./frontend-user
+    container_name: library_frontend_user
+    ports:
+      - "8080:80" # Map Host 8080 to Container 80 (Nginx)
+    depends_on:
+      - backend
+    networks:
+      - library-network
+
+  frontend-admin:
+    build: ./frontend-admin
+    container_name: library_frontend_admin
+    ports:
+      - "8081:80" # Map Host 8081 to Container 80 (Nginx)
+    depends_on:
+      - backend
+    networks:
+      - library-network
+
+volumes:
+  mongo_data:
+
+networks:
+  library-network:
+    driver: bridge
